@@ -1,0 +1,89 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+
+version = "1.12-1.0.2"
+group = "abused_master.industrialmeat"
+archivesBaseName = "industrialmeat"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.0.2491"
+    runDir = "run"
+	
+    mappings = "snapshot_20170624"
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+	maven {
+		name = "JEI"
+        url = "http://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+		name = "Tesla Maven"
+        url = "http://maven.epoxide.xyz"
+    }
+	maven {
+		name = "Industrial Foregoing Maven"
+		url = "http://dyonovan.com/maven2"
+	}
+	maven {
+        name = "CoFH Maven"
+        url = "http://maven.covers1624.net"
+    }
+	maven {
+		name = "CraftTweaker Maven"
+		url = "http://maven.blamejared.com/"
+	}
+	maven {
+		name = "TeslaCoreLib Maven"
+		url = "http://maven.modcrafters.net"
+	}
+	maven {
+		name = "Shadowfacts Maven"
+		url = "http://maven.shadowfacts.net"
+	}
+}
+
+dependencies {
+	deobfCompile "com.buuz135.industrial.IndustrialForegoing:industrialforegoing:1.12.1-1.+"
+	deobfCompile "net.shadowfacts:Forgelin:1.5.1"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'deobf'
+}
+
+artifacts {
+    archives deobfJar
+}

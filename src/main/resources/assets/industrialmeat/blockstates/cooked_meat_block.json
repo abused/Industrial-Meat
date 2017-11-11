@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "normal": { "model": "industrialmeat:cooked_meat_block" },
+        "inventory": { "model": "industrialmeat:cooked_meat_block" }
+    }
+}

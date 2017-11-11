@@ -1,0 +1,25 @@
+{
+  "result": {
+    "item": "industrialmeat:meat_packer"
+  },
+  "pattern": [
+    "XXX",
+    "YFY",
+    "YSY"
+  ],
+  "type": "forge:ore_shaped",
+  "key": {
+    "X": {
+      "item": "industrialforegoing:plastic"
+    },
+	"Y" : {
+		"item": "minecraft:brick_block"
+	},
+	"F" : {
+		"item": "minecraft:furnace"
+	},
+	"S" : {
+		"item": "minecraft:flint_and_steel"
+	}
+  }
+}

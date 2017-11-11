@@ -1,0 +1,21 @@
+{
+    "parent": "block/block",
+    "textures": {
+        "particle": "industrialmeat:blocks/meat_packer_sides",
+        "0": "industrialmeat:blocks/meat_packer_sides",
+        "1": "industrialmeat:blocks/meat_packer_top"
+    },
+    "elements": [
+        {   "from": [ 0, 0, 0 ],
+            "to": [ 16, 16, 16 ],
+            "faces": {
+                "down":  { "texture": "#1", "cullface": "down" },
+                "up":    { "texture": "#1", "cullface": "up"   },
+                "north": { "texture": "#0", "cullface": "north"   },
+                "south": { "texture": "#0", "cullface": "south"   },
+                "west":  { "texture": "#0", "cullface": "west"   },
+                "east":  { "texture": "#0", "cullface": "east"   }
+            }
+        }
+    ]
+}

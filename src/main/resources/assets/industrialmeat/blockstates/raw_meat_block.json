@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "normal": { "model": "industrialmeat:raw_meat_block" },
+        "inventory": { "model": "industrialmeat:raw_meat_block" }
+    }
+}

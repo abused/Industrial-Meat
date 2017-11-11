@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "industrialmeat:cooked_meat_block"
+    }
+  ],
+  "result": {
+    "item": "industrialmeat:cooked_meat_ingot",
+	"data": 0,
+	"count": 9
+  }
+}
