@@ -2,135 +2,118 @@ package abused_master.industrialmeat.gui;
 
 import abused_master.industrialmeat.IndustrialMeat;
 import abused_master.industrialmeat.gui.container.ContainerMeatPacker;
-import abused_master.industrialmeat.tileentity.TileEntityMeatPacker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.client.config.GuiUtils;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiMeatPacker extends GuiContainer {
+public class GuiMeatPacker extends ContainerScreen<ContainerMeatPacker> {
 
     public static final ResourceLocation MEATPACKER_GUI = new ResourceLocation(IndustrialMeat.MODID, "textures/gui/gui_meatpacker.png");
 
-    TileEntityMeatPacker meatPacker;
-    public static final int WIDTH = 176;
-    public static final int HEIGHT = 166;
-    public GuiMeatPacker(ContainerMeatPacker containerMeatPacker, TileEntityMeatPacker te) {
-        super(containerMeatPacker);
-        meatPacker = (TileEntityMeatPacker) te;
-        xSize = WIDTH;
-        ySize = HEIGHT;
+    public GuiMeatPacker(ContainerMeatPacker containerMeatPacker, PlayerInventory playerInventory, ITextComponent textComponent) {
+        super(containerMeatPacker, playerInventory, textComponent);
     }
 
     @Override
-    public void initGui() {
-        super.initGui();
-        this.guiLeft = (this.width - this.xSize) / 2;
-        this.guiTop = (this.height - this.ySize) / 2;
+    protected void func_231160_c_() {
+        super.func_231160_c_();
+        //Center Title
+        this.field_238742_p_ = (this.xSize - this.field_230712_o_.func_238414_a_(this.field_230704_d_)) / 2;
     }
 
+    //render
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
-        this.drawDefaultBackground();
-        super.drawScreen(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+    public void func_230430_a_(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        //renderBackground
+        this.func_230446_a_(matrixStack);
+        super.func_230430_a_(matrixStack, mouseX, mouseY, partialTicks);
+
+        //renderHoveredToolTip
+        this.func_230459_a_(matrixStack, mouseX, mouseY);
     }
 
+    //drawGuiContainerBackgroundLayer
     @Override
-    public void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        mc.getTextureManager().bindTexture(MEATPACKER_GUI);
-        drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
+    public void func_230450_a_(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        getMinecraft().getTextureManager().bindTexture(MEATPACKER_GUI);
+        func_238474_b_(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
 
-        renderWorkd2();
-        renderEnergy();
-        renderFluid();
+        renderWork(matrixStack);
+        renderEnergy(matrixStack);
+        renderFluid(matrixStack);
 
-        if (this.isPointInRegion(10, 18, 12, 48, mouseX, mouseY)) {
-            List<String> energy = new ArrayList<String>();
-            energy.add(meatPacker.storage.getEnergyStored() + " / " + meatPacker.storage.getMaxEnergyStored() + "  FU");
-            GuiUtils.drawHoveringText(energy, mouseX, mouseY, mc.displayWidth, mc.displayHeight, -1, mc.fontRenderer);
-        }
+        if(container.getMeatPacker() != null) {
+            if (this.isPointInRegion(10, 18, 12, 48, mouseX, mouseY)) {
+                List<StringTextComponent> energy = new ArrayList<>();
+                energy.add(new StringTextComponent(container.getMeatPacker().storage.getEnergyStored() + " / " + container.getMeatPacker().storage.getMaxEnergyStored() + "  FE"));
+                GuiUtils.drawHoveringText(matrixStack, energy, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+            }
 
-        if (this.isPointInRegion(30, 18, 5, 48, mouseX, mouseY)) {
-            List<String> work = new ArrayList<String>();
-            work.add(meatPacker.workTime + " / " + meatPacker.totalWorkTime + "  Work Time");
-            GuiUtils.drawHoveringText(work, mouseX, mouseY, mc.displayWidth, mc.displayHeight, -1, mc.fontRenderer);
-        }
+            if (this.isPointInRegion(30, 18, 5, 48, mouseX, mouseY)) {
+                List<StringTextComponent> work = new ArrayList<>();
+                work.add(new StringTextComponent(container.getMeatPacker().workTime + " / " + container.getMeatPacker().totalWorkTime + "  Work Time"));
+                GuiUtils.drawHoveringText(matrixStack, work, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+            }
 
-        if (this.isPointInRegion(43, 18, 12, 48, mouseX, mouseY)) {
-            List<String> fluid = new ArrayList<String>();
-            fluid.add(meatPacker.tank.getFluidAmount() + " / " + meatPacker.tank.getCapacity() + "  MB");
-            GuiUtils.drawHoveringText(fluid, mouseX, mouseY, mc.displayWidth, mc.displayHeight, -1, mc.fontRenderer);
+            if (this.isPointInRegion(43, 18, 12, 48, mouseX, mouseY)) {
+                List<StringTextComponent> fluid = new ArrayList<>();
+                fluid.add(new StringTextComponent(container.getMeatPacker().tank.getFluidAmount() + " / " + container.getMeatPacker().tank.getCapacity() + "  MB"));
+                GuiUtils.drawHoveringText(matrixStack, fluid, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+            }
         }
     }
 
-    public void renderEnergy() {
-        if (meatPacker.storage.getEnergyStored() > 0) {
+    public void renderEnergy(MatrixStack matrixStack) {
+        if (container.getMeatPacker() != null && container.getMeatPacker().storage.getEnergyStored() > 0) {
             int i = 48;
-            int j = meatPacker.storage.getEnergyStored() * i / meatPacker.storage.getMaxEnergyStored();
-            drawTexturedModalRect(guiLeft + 10, guiTop + 66 - j, 193, 48 - j, 12, j);
+            int j = container.getMeatPacker().storage.getEnergyStored() * i / container.getMeatPacker().storage.getMaxEnergyStored();
+            func_238474_b_(matrixStack, guiLeft + 10, guiTop + 66 - j, 193, 48 - j, 12, j);
         }
     }
 
-    public void renderWorkd2() {
-        if(meatPacker.workTime > 0) {
+    public void renderWork(MatrixStack matrixStack) {
+        if(container.getMeatPacker() != null &&  container.getMeatPacker().workTime > 0) {
             int i = 48;
-            int j = meatPacker.workTime * i / meatPacker.totalWorkTime;
-            drawTexturedModalRect(guiLeft + 30, guiTop + 66 - j, 208, 48 - j, 5, j);
+            int j = container.getMeatPacker().workTime * i / container.getMeatPacker().totalWorkTime;
+            func_238474_b_(matrixStack, guiLeft + 30, guiTop + 66 - j, 208, 48 - j, 5, j);
         }
     }
 
-    public void renderFluid() {
-        if(meatPacker.tank != null && meatPacker.tank.getFluidAmount() > 0) {
-            int i = meatPacker.tank.getFluidAmount() * 48 / meatPacker.tank.getCapacity();
-            GlStateManager.pushMatrix();
+    public void renderFluid(MatrixStack matrixStack) {
+        if(container.getMeatPacker() != null &&  container.getMeatPacker().tank != null && container.getMeatPacker().tank.getFluidAmount() > 0) {
+            int i = container.getMeatPacker().tank.getFluidAmount() * 48 / container.getMeatPacker().tank.getCapacity();
+            int color = container.getMeatPacker().tank.getFluid().getFluid().getAttributes().getColor();
+            int brightness = getMinecraft().world.getLightSubtracted(new BlockPos(guiLeft + 10, guiTop + 7, 0), container.getMeatPacker().tank.getFluid().getFluid().getAttributes().getLuminosity());
+            TextureAtlasSprite still = getMinecraft().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(container.getMeatPacker().tank.getFluid().getFluid().getAttributes().getStillTexture());
+
+            matrixStack.push();
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.getBuffer();
+
             GlStateManager.enableBlend();
-            final int color = meatPacker.tank.getFluid().getFluid().getColor();
-            final int brightness = mc.world.getCombinedLight(new BlockPos(guiLeft + 10, guiTop + 7, 0), meatPacker.tank.getFluid().getFluid().getLuminosity());
-            final Minecraft mc = Minecraft.getMinecraft();
-            final Tessellator tessellator = Tessellator.getInstance();
-            final BufferBuilder buffer = tessellator.getBuffer();
+            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            getMinecraft().textureManager.bindTexture(PlayerContainer.LOCATION_BLOCKS_TEXTURE);
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX_LIGHTMAP);
 
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-            mc.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            setupRenderState();
-
-            final TextureAtlasSprite still = mc.getTextureMapBlocks().getTextureExtry(meatPacker.tank.getFluid().getFluid().getStill().toString());
-            //addTexturedQuad(buffer, still, guiLeft + 43, guiTop + 18, 12, i, color, brightness);
             addTexturedQuad(buffer, still, guiLeft + 43, guiTop + 66 - i, 12, i, color, brightness);
-
             tessellator.draw();
 
-            cleanupRenderState();
             GlStateManager.disableBlend();
-            GlStateManager.popMatrix();
-        }
-    }
-
-    public static void setupRenderState() {
-        GlStateManager.pushMatrix();
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-        if (Minecraft.isAmbientOcclusionEnabled()) {
-            GL11.glShadeModel(GL11.GL_SMOOTH);
-        }
-        else {
-            GL11.glShadeModel(GL11.GL_FLAT);
+            matrixStack.pop();
         }
     }
 
@@ -150,7 +133,6 @@ public class GuiMeatPacker extends GuiContainer {
     }
 
     public static void addTextureQuad (BufferBuilder buffer, TextureAtlasSprite sprite, double x, double y, double width, double height, int red, int green, int blue, int alpha, int light1, int light2) {
-
         double minU;
         double maxU;
         double minV;
@@ -178,16 +160,9 @@ public class GuiMeatPacker extends GuiContainer {
         minV = sprite.getMinV();
         maxV = sprite.getMaxV();
 
-        buffer.pos(x, y, 0).color(red, green, blue, alpha).tex(minU, maxV).lightmap(light1, light2).endVertex();
-        buffer.pos(x, y2, 0).color(red, green, blue, alpha).tex(minU, minV).lightmap(light1, light2).endVertex();
-        buffer.pos(x2, y2, 0).color(red, green, blue, alpha).tex(maxU, minV).lightmap(light1, light2).endVertex();
-        buffer.pos(x2, y, 0).color(red, green, blue, alpha).tex(maxU, maxV).lightmap(light1, light2).endVertex();
+        buffer.pos(x, y, 0).color(red, green, blue, alpha).tex((float) minU, (float) maxV).lightmap(light1, light2).endVertex();
+        buffer.pos(x, y2, 0).color(red, green, blue, alpha).tex((float) minU, (float) minV).lightmap(light1, light2).endVertex();
+        buffer.pos(x2, y2, 0).color(red, green, blue, alpha).tex((float) maxU, (float) minV).lightmap(light1, light2).endVertex();
+        buffer.pos(x2, y, 0).color(red, green, blue, alpha).tex((float) maxU, (float) maxV).lightmap(light1, light2).endVertex();
     }
-
-    public static void cleanupRenderState() {
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
-        RenderHelper.enableStandardItemLighting();
-    }
-
 }

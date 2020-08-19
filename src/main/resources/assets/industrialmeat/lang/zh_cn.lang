@@ -1,8 +1,0 @@
-tile.cooked_meat_block.name=熟肉块
-tile.raw_meat_block.name=生肉块
-tile.meat_packer.name=肉块打包机
-
-item.raw_meat_ingot.name=生肉锭
-item.cooked_meat_ingot.name=熟肉锭
-item.cooked_meat_nugget.name=熟肉粒
-item.raw_meat_nugget.name=生肉粒

@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "industrialmeat:raw_meat_ingot"
+  },
+  "result": "industrialmeat:cooked_meat_ingot",
+  "experience": 1.0,
+  "cookingtime": 100
+}

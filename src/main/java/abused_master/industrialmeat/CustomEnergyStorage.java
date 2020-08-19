@@ -1,6 +1,6 @@
 package abused_master.industrialmeat;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.energy.EnergyStorage;
 
 public class CustomEnergyStorage extends EnergyStorage {
@@ -31,9 +31,9 @@ public class CustomEnergyStorage extends EnergyStorage {
         }
     }
 
-    public CustomEnergyStorage readFromNBT(NBTTagCompound nbt) {
+    public CustomEnergyStorage readFromNBT(CompoundNBT nbt) {
 
-        this.energy = nbt.getInteger("Energy");
+        this.energy = nbt.getInt("Energy");
 
         if (energy > capacity) {
             energy = capacity;
@@ -41,12 +41,12 @@ public class CustomEnergyStorage extends EnergyStorage {
         return this;
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+    public CompoundNBT writeToNBT(CompoundNBT nbt) {
 
         if (energy < 0) {
             energy = 0;
         }
-        nbt.setInteger("Energy", energy);
+        nbt.putInt("Energy", energy);
         return nbt;
     }
 }

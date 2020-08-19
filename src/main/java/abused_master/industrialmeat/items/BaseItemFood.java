@@ -1,14 +1,12 @@
 package abused_master.industrialmeat.items;
 
-import com.buuz135.industrial.IndustrialForegoing;
-import net.minecraft.item.ItemFood;
+import abused_master.industrialmeat.IndustrialMeat;
+import net.minecraft.item.Food;
+import net.minecraft.item.Item;
 
-public class BaseItemFood extends ItemFood {
+public class BaseItemFood extends Item {
 
-    public BaseItemFood(int amount, float saturation, String name) {
-        super(6, 0.8f, false);
-        this.setUnlocalizedName(name);
-        this.setRegistryName(name);
-        this.setCreativeTab(IndustrialForegoing.creativeTab);
+    public BaseItemFood(Food food) {
+        super(new Item.Properties().food(food).group(IndustrialMeat.modItemGroup));
     }
 }

@@ -1,30 +1,24 @@
 package abused_master.industrialmeat.items;
 
-import abused_master.industrialmeat.IndustrialMeat;
-import abused_master.industrialmeat.gui.GuiHandler;
 import abused_master.industrialmeat.tileentity.TileEntityMeatPacker;
-import com.buuz135.industrial.IndustrialForegoing;
-import com.buuz135.industrial.proxy.FluidsRegistry;
-import com.buuz135.industrial.registry.IFRegistries;
-import net.minecraft.block.BlockContainer;
+import com.buuz135.industrial.module.ModuleCore;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
@@ -33,80 +27,66 @@ import javax.annotation.Nullable;
 
 import static net.minecraftforge.fluids.capability.CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY;
 
-public class MeatPacker extends BlockContainer {
+public class MeatPacker extends ContainerBlock {
 
     public MeatPacker() {
-        super(Material.ROCK);
-        this.setCreativeTab(IndustrialForegoing.creativeTab);
-        this.setRegistryName("meat_packer");
-        this.setUnlocalizedName("meat_packer");
-        this.setHarvestLevel("pickaxe", 1);
-        this.setHardness(1.2f);
+        super(Properties.create(Material.ROCK).hardnessAndResistance(1.2f));
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         ItemStack heldItem = player.getHeldItem(hand);
         final TileEntityMeatPacker tank = (TileEntityMeatPacker) world.getTileEntity(pos);
 
+        if(heldItem != FluidUtil.getFilledBucket(new FluidStack(ModuleCore.MEAT.getSourceFluid(), 1000))) {
+            ActionResultType actionResultType = tank.getCapability(FLUID_HANDLER_CAPABILITY, hit.getFace()).map(fluidHandler -> {
+                FluidActionResult res = this.interactWithFluidHandler(heldItem, fluidHandler, player);
+                if (res.isSuccess()) {
+                    player.setHeldItem(hand, res.getResult());
+                    return ActionResultType.SUCCESS;
+                }
 
-        if(heldItem != FluidUtil.getFilledBucket(new FluidStack(FluidsRegistry.MEAT, 1000))) {
-            IFluidHandler handler = tank.getCapability(FLUID_HANDLER_CAPABILITY, facing);
-            FluidActionResult res = this.interactWithFluidHandler(heldItem, handler, player);
-            if (res.isSuccess()) {
-                player.setHeldItem(hand, res.getResult());
-                return true;
+                return ActionResultType.FAIL;
+            }).orElse(ActionResultType.FAIL);
+
+            if(actionResultType.isSuccess()) {
+                return actionResultType;
             }
         }
-
-        /**
-        if (heldItem.equals(FluidUtil.getFilledBucket(new FluidStack(FluidsRegistry.MEAT, 1000)))) {
-            if(tank.tank != null && tank.tank.getFluidAmount() <=9000) {
-                tank.tank.fill(new FluidStack(FluidsRegistry.MEAT, 1000), true);
-                player.setHeldItem(hand, new ItemStack(Items.BUCKET));
-                System.out.println("held item is meat bucket");
-                return true;
-            }
-        }
-         */
 
         if(!world.isRemote) {
-            if (heldItem != FluidUtil.getFilledBucket(new FluidStack(FluidsRegistry.MEAT, 1000))) {
-                player.openGui(IndustrialMeat.instance, GuiHandler.GUI_MEATPACKER, world, pos.getX(), pos.getY(), pos.getZ());
-                return true;
+            if (heldItem != FluidUtil.getFilledBucket(new FluidStack(ModuleCore.MEAT.getSourceFluid(), 1000))) {
+                NetworkHooks.openGui((ServerPlayerEntity) player, tank, pos);
+                return ActionResultType.SUCCESS;
             }
         }
-        return true;
+
+        return ActionResultType.SUCCESS;
     }
 
     @Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
     }
 
-    @Nullable
-    @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TileEntityMeatPacker();
-    }
-
-    public static FluidActionResult interactWithFluidHandler(@Nonnull ItemStack stack, IFluidHandler fluidHandler, EntityPlayer player)
-    {
-        if (stack.isEmpty() || fluidHandler == null || player == null)
-        {
+    public static FluidActionResult interactWithFluidHandler(@Nonnull ItemStack stack, IFluidHandler fluidHandler, PlayerEntity player) {
+        if (stack.isEmpty() || fluidHandler == null || player == null) {
             return FluidActionResult.FAILURE;
         }
 
         IItemHandler playerInventory = new InvWrapper(player.inventory);
 
-        FluidActionResult fillResult = FluidUtil.tryFillContainerAndStow(stack, fluidHandler, playerInventory, Integer.MAX_VALUE, player);
-        if (fillResult.isSuccess())
-        {
+        FluidActionResult fillResult = FluidUtil.tryFillContainerAndStow(stack, fluidHandler, playerInventory, Integer.MAX_VALUE, player, true);
+        if (fillResult.isSuccess()) {
             return fillResult;
+        } else {
+            return FluidUtil.tryEmptyContainerAndStow(stack, fluidHandler, playerInventory, Integer.MAX_VALUE, player, true);
         }
-        else
-        {
-            return FluidUtil.tryEmptyContainerAndStow(stack, fluidHandler, playerInventory, Integer.MAX_VALUE, player);
-        }
+    }
+
+    @Nullable
+    @Override
+    public TileEntity createNewTileEntity(IBlockReader worldIn) {
+        return new TileEntityMeatPacker();
     }
 }

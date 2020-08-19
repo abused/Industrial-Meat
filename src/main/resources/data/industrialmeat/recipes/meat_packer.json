@@ -7,13 +7,13 @@
     "YFY",
     "YSY"
   ],
-  "type": "forge:ore_shaped",
+  "type": "minecraft:crafting_shaped",
   "key": {
     "X": {
       "item": "industrialforegoing:plastic"
     },
 	"Y" : {
-		"item": "minecraft:brick_block"
+		"item": "minecraft:stone_bricks"
 	},
 	"F" : {
 		"item": "minecraft:furnace"

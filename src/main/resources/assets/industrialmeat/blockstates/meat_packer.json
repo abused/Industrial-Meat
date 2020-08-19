@@ -1,6 +1,5 @@
 {
     "variants": {
-        "normal": { "model": "industrialmeat:meat_packer" },
-        "inventory": { "model": "industrialmeat:meat_packer" }
+        "": { "model": "industrialmeat:block/meat_packer" }
     }
 }

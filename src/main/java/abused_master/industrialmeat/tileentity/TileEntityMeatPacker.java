@@ -1,31 +1,39 @@
 package abused_master.industrialmeat.tileentity;
 
 import abused_master.industrialmeat.CustomEnergyStorage;
-import abused_master.industrialmeat.proxy.CommonProxy;
-import com.buuz135.industrial.proxy.FluidsRegistry;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.item.EntityItem;
+import abused_master.industrialmeat.gui.container.ContainerMeatPacker;
+import abused_master.industrialmeat.registry.ModRegistry;
+import com.buuz135.industrial.module.ModuleCore;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.HopperTileEntity;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityHopper;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class TileEntityMeatPacker extends TileEntity implements ITickable {
+public class TileEntityMeatPacker extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
 
     public CustomEnergyStorage storage = new CustomEnergyStorage(50000);
     public FluidTank tank = new FluidTank(10000);
@@ -33,48 +41,49 @@ public class TileEntityMeatPacker extends TileEntity implements ITickable {
     public int workTime;
     public int totalWorkTime;
 
+    public final LazyOptional<?> capabilityEnergy = LazyOptional.of(() -> storage);
+    public final LazyOptional<?> capabilityTank = LazyOptional.of(() -> tank);
+
     public TileEntityMeatPacker() {
+        super(ModRegistry.meatPackerTileType.get());
     }
 
+    //read
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
-        this.workTime = nbt.getInteger("WorkTime");
-        this.totalWorkTime = nbt.getInteger("TotalWorkTime");
-        this.storage.readFromNBT(nbt);
+    public void func_230337_a_(BlockState state, CompoundNBT compound) {
+        super.func_230337_a_(state, compound);
+        this.workTime = compound.getInt("WorkTime");
+        this.totalWorkTime = compound.getInt("TotalWorkTime");
+        this.storage.readFromNBT(compound);
 
-        if (nbt.hasKey("FluidData")) {
-            this.tank.setFluid(FluidStack.loadFluidStackFromNBT(nbt.getCompoundTag("FluidData")));
+        if (compound.contains("FluidData")) {
+            this.tank.setFluid(FluidStack.loadFluidStackFromNBT(compound.getCompound("FluidData")));
         }
 
         if(tank != null && tank.getFluid() != null) {
-            tank.readFromNBT(nbt);
-        }
-
-        if (this.tank != null) {
-            this.tank.setTileEntity(this);
+            tank.readFromNBT(compound);
         }
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        super.writeToNBT(nbt);
+    public CompoundNBT write(CompoundNBT compound) {
+        super.write(compound);
         if (this.tank != null && this.tank.getFluid() != null) {
-            final NBTTagCompound tankTag = new NBTTagCompound();
+            CompoundNBT tankTag = new CompoundNBT();
             this.tank.getFluid().writeToNBT(tankTag);
-            nbt.setTag("FluidData", tankTag);
-            tank.writeToNBT(nbt);
+            compound.put("FluidData", tankTag);
+            tank.writeToNBT(compound);
         }
-        nbt.setInteger("WorkTime", (short) this.workTime);
-        nbt.setInteger("TotalWorkTime", this.totalWorkTime);
-        storage.writeToNBT(nbt);
-        return nbt;
+        compound.putInt("WorkTime", (short) this.workTime);
+        compound.putInt("TotalWorkTime", this.totalWorkTime);
+        storage.writeToNBT(compound);
+        return compound;
     }
 
     @Override
-    public void update() {
+    public void tick() {
         if (!world.isRemote) {
-            IBlockState state = world.getBlockState(pos);
+            BlockState state = world.getBlockState(pos);
             world.notifyBlockUpdate(pos, state, state, 3);
         }
         this.totalWorkTime = getWorkTime();
@@ -87,22 +96,22 @@ public class TileEntityMeatPacker extends TileEntity implements ITickable {
 
                     if(nuggetForm) {
                         storage.extractEnergy(250, false);
-                        tank.drain(50, true);
+                        tank.drain(50, IFluidHandler.FluidAction.EXECUTE);
                     }else {
                         storage.extractEnergy(600, false);
-                        tank.drain(200, true);
+                        tank.drain(200, IFluidHandler.FluidAction.EXECUTE);
                     }
 
-                    ItemStack stack = new ItemStack(CommonProxy.RawMeatIngot);
-                    ItemStack rawStack = new ItemStack(CommonProxy.RawMeatNugget);
-                    for (EnumFacing side : EnumFacing.VALUES) {
+                    ItemStack stack = new ItemStack(ModRegistry.rawMeatIngotType.get());
+                    ItemStack rawStack = new ItemStack(ModRegistry.rawMeatNuggetType.get());
+                    for (Direction side : Direction.values()) {
                         BlockPos cip = pos.offset(side);
                         TileEntity ite = world.getTileEntity(cip);
                         if (ite instanceof IInventory) {
                             if (nuggetForm) {
-                                stack = TileEntityHopper.putStackInInventoryAllSlots(null, (IInventory) ite, rawStack, side.getOpposite());
+                                stack = HopperTileEntity.putStackInInventoryAllSlots(null, (IInventory) ite, rawStack, side.getOpposite());
                             }else {
-                                stack = TileEntityHopper.putStackInInventoryAllSlots(null, (IInventory) ite, stack, side.getOpposite());
+                                stack = HopperTileEntity.putStackInInventoryAllSlots(null, (IInventory) ite, stack, side.getOpposite());
                             }
                         }
                         if (stack.isEmpty() || rawStack.isEmpty()) {
@@ -111,9 +120,9 @@ public class TileEntityMeatPacker extends TileEntity implements ITickable {
                     }
                     if (!stack.isEmpty()) {
                         if(nuggetForm) {
-                            world.spawnEntity(new EntityItem(world, pos.getX(), pos.getY() + 1, pos.getZ(), rawStack));
+                            world.addEntity(new ItemEntity(world, pos.getX(), pos.getY() + 1, pos.getZ(), rawStack));
                         }else {
-                            world.spawnEntity(new EntityItem(world, pos.getX(), pos.getY() + 1, pos.getZ(), stack));
+                            world.addEntity(new ItemEntity(world, pos.getX(), pos.getY() + 1, pos.getZ(), stack));
                         }
                     }
 
@@ -129,14 +138,14 @@ public class TileEntityMeatPacker extends TileEntity implements ITickable {
     public boolean canCreateMeat() {
         if (tank.getFluidAmount() >= 200) {
             if (storage.getEnergyStored() >= 500) {
-                if(tank.getFluid().getFluid() == FluidsRegistry.MEAT) {
+                if(tank.getFluid().getFluid() == ModuleCore.MEAT.getSourceFluid()) {
                     nuggetForm = false;
                     return true;
                 }
             }
         } else if (tank.getFluidAmount() < 200 && tank.getFluidAmount() >= 50) {
             if (storage.getEnergyStored() >= 300) {
-                if(tank.getFluid().getFluid() == FluidsRegistry.MEAT) {
+                if(tank.getFluid().getFluid() == ModuleCore.MEAT.getSourceFluid()) {
                     nuggetForm = true;
                     return true;
                 }
@@ -151,52 +160,49 @@ public class TileEntityMeatPacker extends TileEntity implements ITickable {
 
     @Override
     @Nullable
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        return new SPacketUpdateTileEntity(this.pos, 3, this.getUpdateTag());
+    public SUpdateTileEntityPacket getUpdatePacket() {
+        return new SUpdateTileEntityPacket(this.pos, 3, this.getUpdateTag());
     }
 
     @Override
-    public NBTTagCompound getUpdateTag() {
-        return this.writeToNBT(new NBTTagCompound());
+    public CompoundNBT getUpdateTag() {
+        return this.write(new CompoundNBT());
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         super.onDataPacket(net, pkt);
-        handleUpdateTag(pkt.getNbtCompound());
+        handleUpdateTag(getBlockState(), pkt.getNbtCompound());
+        this.world.notifyBlockUpdate(this.getPos(), world.getBlockState(this.getPos()), world.getBlockState(this.getPos()), 3);
     }
 
     @Override
-    public void handleUpdateTag(NBTTagCompound tag)
-    {
-        this.readFromNBT(tag);
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        this.func_230337_a_(state, tag);
     }
 
+    @Nonnull
     @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction side) {
         if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return true;
+            return (LazyOptional<T>) this.capabilityTank;
         }
+
         if(capability == CapabilityEnergy.ENERGY) {
-            return true;
+            return (LazyOptional<T>) this.capabilityEnergy;
         }
-        return super.hasCapability(capability, facing);
+
+        return null;
+    }
+
+    @Override
+    public ITextComponent getDisplayName() {
+        return new StringTextComponent("Meat Packer");
     }
 
     @Nullable
     @Override
-    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return (T) this.tank;
-        }
-        if(capability == CapabilityEnergy.ENERGY) {
-            return (T) this.storage;
-        }
-        return super.getCapability(capability, facing);
+    public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+        return new ContainerMeatPacker(id, playerInventory, this);
     }
 }

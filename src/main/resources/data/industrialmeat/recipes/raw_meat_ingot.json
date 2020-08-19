@@ -2,12 +2,11 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "industrialmeat:cooked_meat_block"
+      "item": "industrialmeat:raw_meat_block"
     }
   ],
   "result": {
-    "item": "industrialmeat:cooked_meat_ingot",
-	"data": 0,
+    "item": "industrialmeat:raw_meat_ingot",
 	"count": 9
   }
 }

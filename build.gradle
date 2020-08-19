@@ -2,15 +2,16 @@ buildscript {
     repositories {
         jcenter()
         maven { url = "http://files.minecraftforge.net/maven" }
+		mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'maven-publish'
 
-
-version = "1.12-1.0.2"
+version = "1.16-1.0.3"
 group = "abused_master.industrialmeat"
 archivesBaseName = "industrialmeat"
 
@@ -20,10 +21,50 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.0.2491"
-    runDir = "run"
-	
-    mappings = "snapshot_20170624"
+    mappings channel: 'snapshot', version: '20200514-1.16'
+	runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                industrialmeat {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                industrialmeat {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'industrialmeat', '--all', '--output', file('src/generated/resources/')
+
+            mods {
+                industrialmeat {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
 }
 
 repositories {
@@ -33,57 +74,44 @@ repositories {
 		name = "JEI"
         url = "http://dvs1.progwml6.com/files/maven"
     }
-    maven {
-		name = "Tesla Maven"
-        url = "http://maven.epoxide.xyz"
-    }
+	
 	maven {
-		name = "Industrial Foregoing Maven"
-		url = "http://dyonovan.com/maven2"
-	}
-	maven {
-        name = "CoFH Maven"
-        url = "http://maven.covers1624.net"
-    }
-	maven {
-		name = "CraftTweaker Maven"
-		url = "http://maven.blamejared.com/"
-	}
-	maven {
-		name = "TeslaCoreLib Maven"
-		url = "http://maven.modcrafters.net"
-	}
-	maven {
-		name = "Shadowfacts Maven"
-		url = "http://maven.shadowfacts.net"
+		name = "Horizon Maven"
+		url = "https://cdn.hrzn.studio/maven/"
 	}
 }
 
 dependencies {
-	deobfCompile "com.buuz135.industrial.IndustrialForegoing:industrialforegoing:1.12.1-1.+"
-	deobfCompile "net.shadowfacts:Forgelin:1.5.1"
+    minecraft 'net.minecraftforge:forge:1.16.1-32.0.98'
+	compile fg.deobf("com.buuz135:industrial-foregoing:1.16.1-3.0.5-7e692e4")
+    compile fg.deobf('com.hrznstudio:titanium:1.16.1-3.+')
 }
 
-processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "IndustrialMeat",
+            "Specification-Vendor": "IndustrialMeat",
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor" :"IndustrialMeat",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
     }
-        
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+}
+
+jar.finalizedBy('reobfJar') 
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
     }
-}
-
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'deobf'
-}
-
-artifacts {
-    archives deobfJar
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
 }
