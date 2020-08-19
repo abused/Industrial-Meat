@@ -1,4 +1,5 @@
 {
+  "itemGroup.industrialmeat": "Industrial Meat",
   "block.industrialmeat.cooked_meat_block": "熟肉块",
   "block.industrialmeat.raw_meat_block": "生肉块",
   "block.industrialmeat.meat_packer": "肉块打包机",
