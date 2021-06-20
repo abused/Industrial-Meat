@@ -29,28 +29,28 @@ public class GuiMeatPacker extends ContainerScreen<ContainerMeatPacker> {
     }
 
     @Override
-    protected void func_231160_c_() {
-        super.func_231160_c_();
+    protected void init() {
+        super.init();
         //Center Title
-        this.field_238742_p_ = (this.xSize - this.field_230712_o_.func_238414_a_(this.field_230704_d_)) / 2;
+        this.titleX = (this.xSize - this.font.getStringPropertyWidth(this.title)) / 2;
     }
 
     //render
     @Override
-    public void func_230430_a_(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         //renderBackground
-        this.func_230446_a_(matrixStack);
-        super.func_230430_a_(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         //renderHoveredToolTip
-        this.func_230459_a_(matrixStack, mouseX, mouseY);
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
     //drawGuiContainerBackgroundLayer
     @Override
-    public void func_230450_a_(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    public void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         getMinecraft().getTextureManager().bindTexture(MEATPACKER_GUI);
-        func_238474_b_(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        blit(matrixStack, guiLeft, guiTop, 0, 0, xSize, ySize);
 
         renderWork(matrixStack);
         renderEnergy(matrixStack);
@@ -60,19 +60,19 @@ public class GuiMeatPacker extends ContainerScreen<ContainerMeatPacker> {
             if (this.isPointInRegion(10, 18, 12, 48, mouseX, mouseY)) {
                 List<StringTextComponent> energy = new ArrayList<>();
                 energy.add(new StringTextComponent(container.getMeatPacker().storage.getEnergyStored() + " / " + container.getMeatPacker().storage.getMaxEnergyStored() + "  FE"));
-                GuiUtils.drawHoveringText(matrixStack, energy, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+                GuiUtils.drawHoveringText(matrixStack, energy, mouseX, mouseY, getMinecraft().currentScreen.width, getMinecraft().currentScreen.height, -1, getMinecraft().fontRenderer);
             }
 
             if (this.isPointInRegion(30, 18, 5, 48, mouseX, mouseY)) {
                 List<StringTextComponent> work = new ArrayList<>();
                 work.add(new StringTextComponent(container.getMeatPacker().workTime + " / " + container.getMeatPacker().totalWorkTime + "  Work Time"));
-                GuiUtils.drawHoveringText(matrixStack, work, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+                GuiUtils.drawHoveringText(matrixStack, work, mouseX, mouseY, getMinecraft().currentScreen.width, getMinecraft().currentScreen.height, -1, getMinecraft().fontRenderer);
             }
 
             if (this.isPointInRegion(43, 18, 12, 48, mouseX, mouseY)) {
                 List<StringTextComponent> fluid = new ArrayList<>();
                 fluid.add(new StringTextComponent(container.getMeatPacker().tank.getFluidAmount() + " / " + container.getMeatPacker().tank.getCapacity() + "  MB"));
-                GuiUtils.drawHoveringText(matrixStack, fluid, mouseX, mouseY, getMinecraft().currentScreen.field_230708_k_, getMinecraft().currentScreen.field_230709_l_, -1, getMinecraft().fontRenderer);
+                GuiUtils.drawHoveringText(matrixStack, fluid, mouseX, mouseY, getMinecraft().currentScreen.width, getMinecraft().currentScreen.height, -1, getMinecraft().fontRenderer);
             }
         }
     }
@@ -81,7 +81,7 @@ public class GuiMeatPacker extends ContainerScreen<ContainerMeatPacker> {
         if (container.getMeatPacker() != null && container.getMeatPacker().storage.getEnergyStored() > 0) {
             int i = 48;
             int j = container.getMeatPacker().storage.getEnergyStored() * i / container.getMeatPacker().storage.getMaxEnergyStored();
-            func_238474_b_(matrixStack, guiLeft + 10, guiTop + 66 - j, 193, 48 - j, 12, j);
+            blit(matrixStack, guiLeft + 10, guiTop + 66 - j, 193, 48 - j, 12, j);
         }
     }
 
@@ -89,7 +89,7 @@ public class GuiMeatPacker extends ContainerScreen<ContainerMeatPacker> {
         if(container.getMeatPacker() != null &&  container.getMeatPacker().workTime > 0) {
             int i = 48;
             int j = container.getMeatPacker().workTime * i / container.getMeatPacker().totalWorkTime;
-            func_238474_b_(matrixStack, guiLeft + 30, guiTop + 66 - j, 208, 48 - j, 5, j);
+            blit(matrixStack, guiLeft + 30, guiTop + 66 - j, 208, 48 - j, 5, j);
         }
     }
 

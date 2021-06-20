@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 public class TileEntityMeatPacker extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
 
     public CustomEnergyStorage storage = new CustomEnergyStorage(50000);
-    public FluidTank tank = new FluidTank(10000);
+    public FluidTank tank = new FluidTank(10000, fluidStack -> fluidStack.isFluidEqual(ModuleCore.MEAT.getSourceFluid().getFluid().getFilledBucket().getDefaultInstance()));
     public boolean nuggetForm = false;
     public int workTime;
     public int totalWorkTime;
@@ -48,10 +48,9 @@ public class TileEntityMeatPacker extends TileEntity implements ITickableTileEnt
         super(ModRegistry.meatPackerTileType.get());
     }
 
-    //read
     @Override
-    public void func_230337_a_(BlockState state, CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void read(BlockState state, CompoundNBT compound) {
+        super.read(state, compound);
         this.workTime = compound.getInt("WorkTime");
         this.totalWorkTime = compound.getInt("TotalWorkTime");
         this.storage.readFromNBT(compound);
@@ -178,18 +177,18 @@ public class TileEntityMeatPacker extends TileEntity implements ITickableTileEnt
 
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        this.func_230337_a_(state, tag);
+        this.read(state, tag);
     }
 
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction side) {
         if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return (LazyOptional<T>) this.capabilityTank;
+            return this.capabilityTank.cast();
         }
 
         if(capability == CapabilityEnergy.ENERGY) {
-            return (LazyOptional<T>) this.capabilityEnergy;
+            return this.capabilityEnergy.cast();
         }
 
         return null;

@@ -1,10 +1,11 @@
 modLoader="javafml"
-loaderVersion="[32,)"
+loaderVersion="[34,)"
 issueTrackerURL="https://github.com/abused/Industrial-Meat/issues/"
+license="MIT"
 
 [[mods]]
 modId="industrialmeat"
-version="1.0.3"
+version="1.0.4"
 displayName="Industrial Meat"
 displayURL="https://github.com/abused/Industrial-Meat/"
 credits="Minefactory Reloaded for the idea."
@@ -16,12 +17,12 @@ The meat is back!
 [[dependencies.industrialmeat]]
     modId = "industrialforegoing"
     mandatory = true
-    versionRange = "[2.0,)"
+    versionRange = "[3.2,)"
     ordering = "NONE"
     side = "BOTH"
 [[dependencies.industrialmeat]]
     modId = "forge"
     mandatory = true
-    versionRange = "[32.0.98,)"
+    versionRange = "[36.0.1,)"
     ordering = "NONE"
     side = "BOTH"

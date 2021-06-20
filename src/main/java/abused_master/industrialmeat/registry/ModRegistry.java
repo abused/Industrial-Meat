@@ -6,7 +6,6 @@ import abused_master.industrialmeat.items.BaseItemFood;
 import abused_master.industrialmeat.items.BaseMeatBlock;
 import abused_master.industrialmeat.items.MeatPacker;
 import abused_master.industrialmeat.tileentity.TileEntityMeatPacker;
-import com.buuz135.industrial.api.IndustrialForegoingHelper;
 import com.buuz135.industrial.api.recipe.ProteinReactorEntry;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
@@ -53,10 +52,10 @@ public class ModRegistry {
 
     public static void register() {
         //ManualAdditions.addToManual();
-        IndustrialForegoingHelper.addProteinReactorEntry(new ProteinReactorEntry(new ItemStack(meatIngotType.get())));
-        IndustrialForegoingHelper.addProteinReactorEntry(new ProteinReactorEntry(new ItemStack(rawMeatIngotType.get())));
-        IndustrialForegoingHelper.addProteinReactorEntry(new ProteinReactorEntry(new ItemStack(meatBlockType.get())));
-        IndustrialForegoingHelper.addProteinReactorEntry(new ProteinReactorEntry(new ItemStack(rawMeatBlockType.get())));
-        IndustrialForegoingHelper.addProteinReactorEntry(new ProteinReactorEntry(new ItemStack(rawMeatNuggetType.get())));
+        ProteinReactorEntry.PROTEIN_REACTOR_ENTRIES.add(new ProteinReactorEntry(new ItemStack(meatIngotType.get())));
+        ProteinReactorEntry.PROTEIN_REACTOR_ENTRIES.add(new ProteinReactorEntry(new ItemStack(rawMeatIngotType.get())));
+        ProteinReactorEntry.PROTEIN_REACTOR_ENTRIES.add(new ProteinReactorEntry(new ItemStack(meatBlockType.get())));
+        ProteinReactorEntry.PROTEIN_REACTOR_ENTRIES.add(new ProteinReactorEntry(new ItemStack(rawMeatBlockType.get())));
+        ProteinReactorEntry.PROTEIN_REACTOR_ENTRIES.add(new ProteinReactorEntry(new ItemStack(rawMeatNuggetType.get())));
     }
 }
